@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+	<title>touch轮播</title>
+	<style type="text/css">
+		*{margin: 0;padding: 0;list-style:none;}
+		.demo{overflow:hidden;position:relative;}
+		ul{width:500%;overflow:hidden;position:relative;}
+		ul li{width:20%;float:left;}
+		ul li a{display:block;width:100%;}
+		ul li img{display:block;width:100%;}
+		ol{position:absolute;bottom:5px;overflow:hidden;}
+		ol li{width:5px;height:5px;float:left;margin:5px;border:solid 1px #fff;border-radius:50%;}
+		ol li.current{background:#fff;}
+	</style>
+</head>
+<body>
+	<div class="demo" id="demo">
+		<ul id="ul">
+			<li><a href="javascript:;"><img src="images/01.jpg" alt=""></a></li>
+			<li><a href="javascript:;"><img src="images/02.jpg" alt=""></a></li>
+			<li><a href="javascript:;"><img src="images/03.jpg" alt=""></a></li>
+			<li><a href="javascript:;"><img src="images/04.jpg" alt=""></a></li>
+			<li><a href="javascript:;"><img src="images/05.jpg" alt=""></a></li>
+		</ul>
+	</div>
+</body>
+<script type="text/javascript">
+(function(window){
+	touchUp({touchCount:"demo",touchSlid:"ul"});
+	function touchUp(obj){
+		// 父容器touchCount:idname
+		// 滑动的盒子：touchSild:idname
+		// 获取对象
+		var touchCount = document.getElementById(obj.touchCount);
+		var touchSlid = document.getElementById(obj.touchSlid);
+		var lis = touchSlid.children;
+		// 获取touchCount的宽度
+		var demoWidth = touchCount.offsetWidth;
+		// 初始化样式
+		var firstLi = lis[0].cloneNode(true);
+		var lastLi = lis[lis.length-1].cloneNode(true);
+		touchSlid.appendChild(firstLi);
+		touchSlid.insertBefore(lastLi, lis[0]);
+		lis = touchSlid.children;
+		touchSlid.style.width = lis.length*100+"%";
+		touchSlid.style.left = -demoWidth+"px";
+		for(i = 0; i < lis.length; i++){
+			lis[i].style.width = 100/lis.length + "%";
+		};
+		// 小圆点
+		var ol = document.createElement("ol");
+		for(i = 0 ; i < lis.length-2; i++){
+			var li = document.createElement("li");
+			ol.appendChild(li);
+		};
+		touchCount.appendChild(ol);
+		var olLis = ol.children;
+		olLis[0].className = "current";
+		var olWidth = ol.offsetWidth;
+		ol.style.left = "50%";
+		ol.style.marginLeft = -olWidth/2+"px";
+		// 自动轮播
+		var index = 0,s = 0,timer = null,ulLeft = -demoWidth;
+		timer = setInterval(rclick, 3000);
+		// touch事件
+		var startX,moveX,endX,step = 0;
+		touchSlid.addEventListener("touchstart", function(e){
+			clearInterval(timer);
+			startX = e.touches[0].clientX;
+		}, false);
+		touchSlid.addEventListener("touchmove", function(e){
+			moveX = e.touches[0].clientX;
+			step = moveX - startX;
+			touchSlid.style.left = ulLeft+step+"px";
+		}, false);
+		touchSlid.addEventListener("touchend", function(e){
+			endX = e.changedTouches[0].clientX;
+			var diffX = Math.abs(endX-startX);
+			if( diffX < demoWidth/3 ){
+				animate(touchSlid,{"left":ulLeft});
+			}else{
+				if(endX < startX){
+					rclick();
+				};
+				if(endX > startX){
+					lclick();
+				};
+			};
+			timer = setInterval(rclick, 3000);
+		}, false);
+		// 向右轮播
+		function rclick(){
+			index++;
+			ulLeft = -(index+1)*demoWidth;
+			animate(touchSlid,{"left":-(index+1)*demoWidth},function(){
+				if(index == lis.length-2){
+					index = 0;
+					touchSlid.style.left = -demoWidth+"px";
+					ulLeft = -(index+1)*demoWidth;
+				};
+			});
+			if( s == olLis.length - 1 ){
+				s = 0;
+			}else{
+				s++;
+			};
+			for(i = 0; i < olLis.length; i++){
+				olLis[i].className = "";
+			};
+			olLis[s].className = "current";
+		};
+		// 向左轮播
+		function lclick(){
+			index--;
+			ulLeft = -(index+1)*demoWidth;
+			animate(touchSlid,{"left":-(index+1)*demoWidth},function(){
+				if(index == -1){
+					index = lis.length - 3;
+					touchSlid.style.left = -(lis.length-2)*demoWidth+"px";
+					ulLeft = -(index+1)*demoWidth;
+				};
+			});
+			if( s == 0 ){
+				s = olLis.length - 1;
+			}else{
+				s--;
+			};
+			for(i = 0; i < olLis.length; i++){
+				olLis[i].className = "";
+			};
+			olLis[s].className = "current";
+		};
+		// 获取当前样式
+		function getStyle(ele,attr){
+			if(window.getComputedStyle){
+				return window.getComputedStyle(ele,null)[attr];
+			}else{
+				return ele.currentStyle[attr];
+			};
+		};
+		// 缓动动画函数
+		function animate(ele,obj,fn){
+			clearInterval(ele.timer);
+			ele.timer = setInterval(function(){
+				var flog = true;
+				for( k in obj){
+					if( k == "zIndex" ){
+						ele.style[k] = obj[k];
+					}else if( k == "opacity" ){
+						var target = obj[k]*100;
+						var leader = getStyle(ele,k)*100;
+						var step = (target-leader)/10;
+						step = step > 0 ? Math.ceil(step) : Math.floor(step);
+						leader = leader + step;
+						ele.style[k] = leader/100;
+					}else{
+						var target = obj[k];
+						var leader = parseInt(getStyle(ele,k));
+						var step = (target - leader)/10;
+						step = step > 0 ? Math.ceil(step) : Math.floor(step);
+						leader = leader + step;
+						ele.style[k] = leader + "px";
+					};
+					if( leader !== target ){
+						flog = false;
+					};
+				};
+				if(flog){
+					clearInterval(ele.timer);
+					if(fn){
+						fn();
+					};
+				};
+			}, 15);
+		};
+	};
+})(window)
+</script>
+</html>

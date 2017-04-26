@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+	<title>滑动轮播</title>
+	<style type="text/css">
+		*{margin: 0;padding: 0;list-style:none;}
+		.demo{width:490px;height:170px;border:solid 1px #ccc;overflow:hidden;position:relative;margin:50px auto 0;}
+		ul{width:500%;overflow:hidden;position:relative;}
+		ul li{width:20%;float:left;}
+		ul li a{display:block;}
+		img{display:block;width:100%;}
+		ol{position:absolute;bottom:5px;overflow:hidden;}
+		ol li{float:left;margin:5px;width:10px;height:10px;border-radius:50%;border:solid 1px #fff;}
+		ol li.current{background:#fff;}
+		.btn a{position:absolute;color:#000;text-decoration: none;width:30px;height:20px;text-align:center;line-height:20px;background:#ccc;top:50%;margin-top:-10px;opacity:0;}
+		a.left{left:0;}
+		a.right{right:0;}
+	</style>
+</head>
+<body>
+	<div class="demo" id="demo">
+		<ul id="ul">
+			<li><a href="javascript:;"><img src="./images/01.jpg" alt=""></a></li>
+			<li><a href="javascript:;"><img src="./images/02.jpg" alt=""></a></li>
+			<li><a href="javascript:;"><img src="./images/03.jpg" alt=""></a></li>
+			<li><a href="javascript:;"><img src="./images/04.jpg" alt=""></a></li>
+			<li><a href="javascript:;"><img src="./images/05.jpg" alt=""></a></li>
+		</ul>
+		<div class="btn">
+			<a href="javascript:;" class="left" id="left">←</a>
+			<a href="javascript:;" class="right" id="right">→</a>
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+(function(window){
+		// 获取元素
+	sliderUp({slideCount:"demo",slid:"ul",slidBtn:["left","right"],slidDot:true,slidePosit:"center"});
+		function sliderUp(obj){
+			// 父容器：slideCount:id
+			// 滑动容器：slideHua:id
+			// 按钮：slidBtn:[id]
+			// 小圆点：slidDot:boolean
+			// 小圆点位置：slidePosit：string
+		var demo = document.getElementById(obj.slideCount);
+		var demoWidth = demo.scrollWidth;
+		// 滑动的元素
+		var slid = document.getElementById(obj.slid);
+		// 初始化样式
+		var firstLi = slid.children[0].cloneNode(true);
+		slid.appendChild(firstLi);
+		var lis = slid.children;
+		slid.style.width = lis.length * 100 + "%";
+		for( i = 0 ; i < lis.length ; i++ ){
+			lis[i].style.width = 100/lis.length + "%";
+		};
+		if(obj.slidDot){
+			// 设置小圆点
+			var ol = document.createElement("ol");
+			for( j = 0 ; j < lis.length - 1 ; j++ ){
+				var li = document.createElement("li");
+				li.style.cursor = "pointer";
+				ol.appendChild(li);
+			};
+			ol.children[0].className = "current";
+			demo.appendChild(ol);
+			var olWidth = ol.offsetWidth;
+			switch(obj.slidePosit){
+				case "left":ol.style.left = "5px";
+				break;
+				case "center":ol.style.left = "50%";ol.style.marginLeft = -olWidth/2+"px";
+				break;
+				case "right":ol.style.right = "5px";
+			};
+			var olLis = ol.getElementsByTagName("li");
+			// 点击下标事件
+			for(j = 0; j < olLis.length; j++){
+				olLis[j].index = j;
+				olLis[j].onclick = function(){
+					if(onOff){
+						onOff = false;
+						animate(slid,{"left":-this.index*demoWidth},function(){onOff = true;});
+						index = this.index;
+						s = this.index;
+						current();
+					};
+				};
+			};
+		};
+		// 获取按钮
+		// 按钮点击事件
+		var onOff = true;
+		if(obj.slidBtn){
+			var lbtn = document.getElementById(obj.slidBtn[0]);
+			var rbtn = document.getElementById(obj.slidBtn[1]);
+			// 右按钮
+			rbtn.onclick = function(){
+				if(onOff){
+					onOff = false;
+					rclick();
+				};
+			};
+			// 左按钮
+			lbtn.onclick = function(){
+				if(onOff){
+					onOff = false;
+					lclick();
+				};
+			};
+		};
+		// 大盒子hover事件
+		demo.onmouseover = function(){
+			clearInterval(timer);
+			if(obj.slidBtn){
+				animate(lbtn,{"opacity":1});
+				animate(rbtn,{"opacity":1});
+			};
+		};
+		demo.onmouseout = function(){
+			timer = setInterval(rclick,3000);
+			if(obj.slidBtn){
+				animate(lbtn,{"opacity":0});
+				animate(rbtn,{"opacity":0});
+			};
+		};
+		// 自动轮播
+		var timer = null;
+		var index = 0,s = 0;
+		timer = setInterval(rclick,3000);
+		function lclick(){
+			if(index ==0 ){
+					index = lis.length - 1;
+					slid.style.left = -(lis.length-1)*demoWidth+"px";
+				};
+				index--;
+				animate(slid,{"left":-index*demoWidth},function(){onOff = true;});
+				if(s ==0){
+					s = lis.length-2;
+				}else{
+					s--;
+				};
+				if(obj.slidDot){
+					current();
+				};
+		};
+		function rclick(){
+			if(index == lis.length -1){
+				index = 0;
+				slid.style.left = 0;
+			};
+			index++;
+			animate(slid,{"left":-index*demoWidth},function(){onOff = true;});
+			if(s == lis.length-2){
+				s=0;
+			}else{
+				s++;
+			};
+			if(obj.slidDot){
+				current();
+			};
+		};
+		// 为li添加当前样式
+		function current(){
+			for(j = 0 ; j < olLis.length ; j++ ){
+				olLis[j].className = "";
+			};
+			olLis[s].className = "current";
+		};
+		// 获取当前样式
+		function getStyle(ele,attr){
+			if(window.getComputedStyle){
+				return window.getComputedStyle(ele,null)[attr];
+			}else{
+				return ele.currentStyle[attr];
+			};
+		};
+		// 缓动函数
+		function animate(ele,obj,fn){
+			clearInterval(ele.timer);
+			ele.timer = setInterval(function(){
+				var flog = true;
+				for(k in obj){
+					if(k == "opacity"){
+						var leader = getStyle(ele,k)*100;
+						var target = obj[k]*100;
+						var step = (target - leader)/10;
+						step = step > 0 ? Math.ceil(step):Math.floor(step);
+						leader = leader+step;
+						ele.style[k] = leader / 100;
+					}else if(k == "zIndex"){
+						els.style[k] = obj[k];
+					}else{
+						var leader = parseInt(getStyle(ele,k));
+						var target = obj[k];
+						var step = (target - leader)/10;
+						step = step > 0 ? Math.ceil(step):Math.floor(step);
+						leader = leader+step;
+						ele.style[k] = leader+"px"; 
+					};
+					if( leader !== target ){
+						flog = false;
+					};
+				};
+				if( flog ){
+					clearInterval(ele.timer);
+					if( fn ){
+						fn();
+					};
+				};
+			},15);
+		};
+	};
+})(window)
+</script>
+</html>
