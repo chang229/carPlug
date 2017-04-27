@@ -131,19 +131,19 @@
 		timer = setInterval(rclick,3000);
 		function lclick(){
 			if(index ==0 ){
-					index = lis.length - 1;
-					slid.style.left = -(lis.length-1)*demoWidth+"px";
-				};
-				index--;
-				animate(slid,{"left":-index*demoWidth},function(){onOff = true;});
-				if(s ==0){
+				index = lis.length - 1;
+				slid.style.left = -(lis.length-1)*demoWidth+"px";
+			};
+			index--;
+			animate(slid,{"left":-index*demoWidth},function(){onOff = true;});
+			if(obj.slidDot){
+				if(s == 0){
 					s = lis.length-2;
 				}else{
 					s--;
 				};
-				if(obj.slidDot){
-					current();
-				};
+				current();
+			};
 		};
 		function rclick(){
 			if(index == lis.length -1){
@@ -152,12 +152,12 @@
 			};
 			index++;
 			animate(slid,{"left":-index*demoWidth},function(){onOff = true;});
-			if(s == lis.length-2){
-				s=0;
-			}else{
-				s++;
-			};
 			if(obj.slidDot){
+				if(s == lis.length-2){
+					s=0;
+				}else{
+					s++;
+				};
 				current();
 			};
 		};

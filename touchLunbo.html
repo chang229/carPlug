@@ -29,10 +29,12 @@
 </body>
 <script type="text/javascript">
 (function(window){
-	touchUp({touchCount:"demo",touchSlid:"ul"});
+	touchUp({touchCount:"demo",touchSlid:"ul",touchDot:true,touchPosit:"center"});
 	function touchUp(obj){
 		// 父容器touchCount:idname
 		// 滑动的盒子：touchSild:idname
+		// 是否有小圆点：touchDot:boolean
+		// 小圆点的位置：touchPosit:string
 		// 获取对象
 		var touchCount = document.getElementById(obj.touchCount);
 		var touchSlid = document.getElementById(obj.touchSlid);
@@ -51,17 +53,26 @@
 			lis[i].style.width = 100/lis.length + "%";
 		};
 		// 小圆点
-		var ol = document.createElement("ol");
-		for(i = 0 ; i < lis.length-2; i++){
-			var li = document.createElement("li");
-			ol.appendChild(li);
+		if(obj.touchDot){
+			var ol = document.createElement("ol");
+			for(i = 0 ; i < lis.length-2; i++){
+				var li = document.createElement("li");
+				ol.appendChild(li);
+			};
+			touchCount.appendChild(ol);
+			var olLis = ol.children;
+			olLis[0].className = "current";
+			var olWidth = ol.offsetWidth;
+			switch (obj.touchPosit){
+				case "left":ol.style.left = "5px";
+				break;
+				case "center":
+					ol.style.left = "50%";
+					ol.style.marginLeft = -olWidth/2+"px";
+				break;
+				case "right":ol.style.right = "5px";
+			};
 		};
-		touchCount.appendChild(ol);
-		var olLis = ol.children;
-		olLis[0].className = "current";
-		var olWidth = ol.offsetWidth;
-		ol.style.left = "50%";
-		ol.style.marginLeft = -olWidth/2+"px";
 		// 自动轮播
 		var index = 0,s = 0,timer = null,ulLeft = -demoWidth;
 		timer = setInterval(rclick, 3000);
@@ -93,24 +104,22 @@
 		}, false);
 		// 向右轮播
 		function rclick(){
+			if(index >= lis.length-2){
+				index = 0;
+				touchSlid.style.left = -demoWidth+"px";
+				ulLeft = -(index+1)*demoWidth;
+			};
 			index++;
 			ulLeft = -(index+1)*demoWidth;
-			animate(touchSlid,{"left":-(index+1)*demoWidth},function(){
-				if(index == lis.length-2){
-					index = 0;
-					touchSlid.style.left = -demoWidth+"px";
-					ulLeft = -(index+1)*demoWidth;
+			animate(touchSlid,{"left":-(index+1)*demoWidth});
+			if(obj.touchDot){
+				if( s == olLis.length - 1 ){
+					s = 0;
+				}else{
+					s++;
 				};
-			});
-			if( s == olLis.length - 1 ){
-				s = 0;
-			}else{
-				s++;
+				current();
 			};
-			for(i = 0; i < olLis.length; i++){
-				olLis[i].className = "";
-			};
-			olLis[s].className = "current";
 		};
 		// 向左轮播
 		function lclick(){
@@ -123,11 +132,17 @@
 					ulLeft = -(index+1)*demoWidth;
 				};
 			});
-			if( s == 0 ){
-				s = olLis.length - 1;
-			}else{
-				s--;
+			if(obj.touchDot){
+				if( s == 0 ){
+					s = olLis.length - 1;
+				}else{
+					s--;
+				};
+				current();
 			};
+		};
+		// 小圆点当前样式
+		function current(){
 			for(i = 0; i < olLis.length; i++){
 				olLis[i].className = "";
 			};
