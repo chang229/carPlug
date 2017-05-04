@@ -12,7 +12,7 @@
 		ul li a{display:block;}
 		img{display:block;width:100%;}
 		ol{position:absolute;bottom:5px;overflow:hidden;}
-		ol li{float:left;margin:5px;width:10px;height:10px;border-radius:50%;border:solid 1px #fff;}
+		ol li{float:left;margin:5px;width:10px;height:10px;border-radius:50%;border:solid 1px #fff;cursor:pointer;}
 		ol li.current{background:#fff;}
 		.btn a{position:absolute;color:#000;text-decoration: none;width:30px;height:20px;text-align:center;line-height:20px;background:#ccc;top:50%;margin-top:-10px;opacity:0;}
 		a.left{left:0;}
@@ -37,8 +37,15 @@
 <script type="text/javascript" src="carous.js"></script>
 <script type="text/javascript">
 (function(window){
-		// 获取元素
-	sliderUp({count:"demo",slid:"ul",btn:["left","right"],dot:true,slidePosit:"center"});
+	carous({
+		count:"demo",
+		sild:"ul",
+		Isbtn:true,
+		btn:["left","right"],
+		dot:true,
+		dotPosit:"center",
+		touch:false
+	});
 })(window)
 </script>
 </html>
