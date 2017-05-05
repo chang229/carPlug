@@ -9,7 +9,7 @@
 // 小圆点位置（选填）dotPosit:string(left,center,right,默认center)
 // 轮播方向（选填）direct:string(left,top,默认left);
 // 是否开启触摸（选填）touch:boolean(false,true,默认true);
-// 轮播事件（选填）time:number(默认3000)
+// 轮播事件（选填）time:number(默认3000);
 function carous(obj){
 	// 设置默认值
 	var defaults = {
@@ -31,29 +31,40 @@ function carous(obj){
 	// 获取对象
 	var count = $(defaults.count);
 	var sild = $(defaults.sild);
-	// 获取count的宽度
-	var countWidth = count.clientWidth;
+	// 获取滑动的距离countDste
+	var direction = defaults.direct;
+	var countDste = count.clientWidth;
+	if( direction == "top"){
+		countDste = count.clientHeight;
+	};
 	// 初始化样式
 	// 判断是否开启touch事件
 	var lis = sild.children;
 	var lastLi = null;
-	if(defaults.touch){
-		lastLi = sild.children[lis.length-1].cloneNode(true);
+	var num = null;
+	if (defaults.touch) {
+		lastLi = sild.children[lis.length - 1].cloneNode(true);
 	};
 	var firstLi = lis[0].cloneNode(true);
 	sild.appendChild(firstLi);
-	if(lastLi){
+	if (lastLi) {
 		sild.insertBefore(lastLi, lis[0]);
 	};
 	lis = sild.children;
-	var num = lis.length-1;
-	sild.style.width = lis.length*100+"%";
-	for(var i = 0 ; i < lis.length; i++){
-		lis[i].style.width = 100/lis.length + "%";
+	num = lis.length - 1;
+	if (direction == "left") {
+		sild.style.width = lis.length * 100 + "%";
+		for (var i = 0; i < lis.length; i++) {
+			lis[i].style.width = 100 / lis.length + "%";
+		};
+	}else if(direction == "top"){
+		sild.style.width = "100%";
+		countDste = lis[0].clientHeight;
+		count.style.height = countDste+"px"; 
 	};
-	if(defaults.touch){
-		sild.style.left = -countWidth+"px";
-		num = lis.length-2;
+	if (defaults.touch) {
+		sild.style[direction] = -countDste + "px";
+		num = lis.length - 2;
 	};
 	// 小圆点业务
 	var olLis = null;
@@ -95,11 +106,19 @@ function carous(obj){
 			olLis[j].onclick = function() {
 				if (onOff) {
 					onOff = false;
-					animate(sild, {
-						"left": -this.index * countWidth
-					}, function() {
-						onOff = true;
-					});
+					if (direction == "left") {
+						animate(sild, {
+							"left": -this.index * countDste
+						}, function() {
+							onOff = true;
+						});
+					} else if (direction == "top") {
+						animate(sild, {
+							"top": -this.index * countDste
+						}, function() {
+							onOff = true;
+						});
+					};
 					index = this.index;
 					s = this.index;
 					current();
@@ -133,26 +152,44 @@ function carous(obj){
 		};
 	};
 	// 是否开启手机滑动
-	var startX, moveX, endX, step = 0,ulLeft = -countWidth;;
+	var startX, moveX, endX, step = 0,ulLeft = -countDste;;
 	if (defaults.touch) {
 		sild.addEventListener("touchstart", function(e) {
 			if (defaults.autoPlay) {
 				clearInterval(timer);
 			};
-			startX = e.touches[0].clientX;
+			if (direction == "left") {
+				startX = e.touches[0].clientX;
+			} else if (direction == "top") {
+				startX = e.touches[0].clientY;
+			};
 		}, false);
 		sild.addEventListener("touchmove", function(e) {
-			moveX = e.touches[0].clientX;
+			if (direction == "left") {
+				moveX = e.touches[0].clientX;
+			} else if (direction == "top") {
+				moveX = e.touches[0].clientY;
+			};
 			step = moveX - startX;
-			sild.style.left = ulLeft + step + "px";
+			sild.style[direction] = ulLeft + step + "px";
 		}, false);
 		sild.addEventListener("touchend", function(e) {
-			endX = e.changedTouches[0].clientX;
+			if (direction == "left") {
+				endX = e.changedTouches[0].clientX;
+			} else if (direction == "top") {
+				endX = e.changedTouches[0].clientY;
+			};
 			var diffX = Math.abs(endX - startX);
-			if (diffX < countWidth / 3) {
-				animate(sild, {
-					"left": ulLeft
-				});
+			if (diffX < countDste / 3) {
+				if (direction == "left") {
+					animate(sild, {
+						"left": ulLeft
+					});
+				} else if (direction == "top") {
+					animate(sild, {
+						"top": ulLeft
+					});
+				};
 			} else {
 				if (endX < startX) {
 					rclick();
@@ -170,31 +207,28 @@ function carous(obj){
 		if (defaults.touch) {
 			if (index >= lis.length - 2) {
 				index = 0;
-				sild.style.left = -countWidth + "px";
-				ulLeft = -(index + 1) * countWidth;
+				sild.style[direction] = -countDste + "px";
+				ulLeft = -(index + 1) * countDste;
 			}
 		} else {
 			if (index >= lis.length - 1) {
 				index = 0;
-				sild.style.left = 0;
+				sild.style[direction] = 0;
 			};
 		};
 		index++;
 		if(defaults.touch){
-			ulLeft = -(index + 1) * countWidth;
+			ulLeft = -(index + 1) * countDste;
 		};
-		animate(sild, {
-			"left": defaults.touch ? -(index + 1) * countWidth : -index * countWidth
-		}, function() {
-			onOff = true;
-			if (defaults.touch) {
-				if (index >= lis.length - 2) {
-					index = 0;
-					sild.style.left = -countWidth + "px";
-					ulLeft = -(index + 1) * countWidth;
-				};
-			};
-		});
+		if (direction == "left") {
+			animate(sild, {
+				"left": defaults.touch ? -(index + 1) * countDste : -index * countDste
+			}, rclickCb);
+		} else if (direction == "top") {
+			animate(sild, {
+				"top": defaults.touch ? -(index + 1) * countDste : -index * countDste
+			}, rclickCb);
+		};
 		if (defaults.dot) {
 			if (s >= olLis.length - 1) {
 				s = 0;
@@ -204,29 +238,36 @@ function carous(obj){
 			current();
 		};
 	};
+	function rclickCb() {
+		onOff = true;
+		if (defaults.touch) {
+			if (index >= lis.length - 2) {
+				index = 0;
+				sild.style[direction] = -countDste + "px";
+				ulLeft = -(index + 1) * countDste;
+			};
+		};
+	};
 	function lclick() {
 		if (!defaults.touch) {
 			if (index <= 0) {
 				index = lis.length - 1;
-				sild.style.left = -(lis.length - 1) * countWidth + "px";
+				sild.style[direction] = -(lis.length - 1) * countDste + "px";
 			};
 		};
 		index--;
 		if(defaults.touch){
-			ulLeft = -(index + 1) * countWidth;
+			ulLeft = -(index + 1) * countDste;
 		};
-		animate(sild, {
-			"left": defaults.touch ? -(index + 1) * countWidth : -index * countWidth
-		}, function() {
-			onOff = true;
-			if (defaults.touch) {
-				if (index == -1) {
-					index = lis.length - 3;
-					sild.style.left = -(lis.length - 2) * countWidth + "px";
-					ulLeft = -(index + 1) * countWidth;
-				};
-			};
-		});
+		if (direction == "left") {
+			animate(sild, {
+				"left": defaults.touch ? -(index + 1) * countDste : -index * countDste
+			}, lclickCb);
+		} else if (direction == "top") {
+			animate(sild, {
+				"top": defaults.touch ? -(index + 1) * countDste : -index * countDste
+			}, lclickCb);
+		};
 		if (defaults.dot) {
 			if (s <= 0) {
 				s = olLis.length - 1;
@@ -234,6 +275,16 @@ function carous(obj){
 				s--;
 			};
 			current();
+		};
+	};
+	function lclickCb() {
+		onOff = true;
+		if (defaults.touch) {
+			if (index == -1) {
+				index = lis.length - 3;
+				sild.style[direction] = -(lis.length - 2) * countDste + "px";
+				ulLeft = -(index + 1) * countDste;
+			};
 		};
 	};
 	// 为li添加当前样式
